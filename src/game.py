@@ -1,6 +1,6 @@
 from src.board import Board
 from src.player import Player
-
+from src.utils import clear_screen
 
 class Game:
     def __init__(self):
@@ -61,5 +61,8 @@ class Game:
                 break
 
             self.switch_player()
+            
+            clear_screen()
+            
 
         print("Game over.")
