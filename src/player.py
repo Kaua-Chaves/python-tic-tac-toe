@@ -1,0 +1,17 @@
+class Player:
+    def __init__(self, name, symbol):
+        self.name = name
+        self.symbol = symbol
+
+    def get_move(self):
+        while True:
+            try:
+                position = int(input(f"{self.name} ({self.symbol}), choose position (0-8): "))
+                
+                if 0 <= position <= 8:
+                    return position
+                else:
+                    print("Invalid position. Try again.")
+            
+            except ValueError:
+                print("Please enter a number.")
