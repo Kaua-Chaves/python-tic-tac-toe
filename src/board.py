@@ -1,15 +1,21 @@
 class Board:
     def __init__(self):
-        self.board = [" " for _ in range(9)]
-        
+        self.grid = [" " for _ in range(9)]
+
     def display(self):
-        print(f"{self.board[0]} | {self.board[1]} | {self.board[2]}")
-        print("--+---+--")
-        print(f"{self.board[3]} | {self.board[4]} | {self.board[5]}")
-        print("--+---+--")
-        print(f"{self.board[6]} | {self.board[7]} | {self.board[8]}")
         print()
-        
+        for i in range(9):
+            value = self.grid[i] if self.grid[i] != " " else str(i)
+            print(f" {value} ", end="")
+
+            if i % 3 != 2:
+                print("|", end="")
+            else:
+                print()
+                if i != 8:
+                    print("---+---+---")
+        print()
+
     def display_positions(self):
         print()
         print(" 0 | 1 | 2 ")
@@ -18,14 +24,14 @@ class Board:
         print("---+---+---")
         print(" 6 | 7 | 8 ")
         print()
-    
+
     def make_move(self, position, player):
-        if self.board[position] == " ":
-            self.board[position] = player
+        if self.grid[position] == " ":
+            self.grid[position] = player
             return True
         return False
-    
+
     def is_full(self):
-        return " " not in self.board
+        return " " not in self.grid
     
     
