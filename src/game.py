@@ -3,19 +3,17 @@ from src.player import Player, AIPlayer
 
 
 class Game:
-    def __init__(self, mode, difficulty="easy", name1="Player 1", name2="Player 2"):
-        self.board = Board()
+    def __init__(self, mode, difficulty="easy", name1="Player 1", name2="AI"):
         self.mode = mode
+        self.difficulty = difficulty
 
-        if mode == "pvp":
-            self.player1 = Player(name1, "X")
-            self.player2 = Player(name2, "O")
+        self.board = Board()
 
-        elif mode == "pvc":
-            self.player1 = Player(name1, "X")
-            self.player2 = AIPlayer("Computer", "O", difficulty)
+        self.player1 = Player(name1, "X")
+        self.player2 = AIPlayer("AI", "O")
 
         self.current_player = self.player1
+
         self.winner = None
         self.finished = False
 
@@ -56,10 +54,3 @@ class Game:
             if b[c[0]] == b[c[1]] == b[c[2]] != " ":
                 return True
         return False
-
-    def get_status(self):
-        if self.finished:
-            if self.winner:
-                return f"{self.winner.name} wins"
-            return "draw"
-        return "playing"

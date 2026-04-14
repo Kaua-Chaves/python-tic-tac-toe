@@ -10,4 +10,3 @@ class Board:
 
     def is_full(self):
         return " " not in self.grid
-    
