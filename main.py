@@ -1,8 +1,9 @@
-from src.game import Game
+from src.gui import TicTacToeGUI
+
 
 def main():
-    game = Game()
-    game.play()
+    TicTacToeGUI()
+
 
 if __name__ == "__main__":
     main()
