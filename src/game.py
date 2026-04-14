@@ -22,8 +22,22 @@ class Game:
         elif choice == "2":
             name = input("Enter your name: ")
 
+            print("Choose difficulty:")
+            print("1 - Easy")
+            print("2 - Medium")
+            print("3 - Hard")
+
+            diff_choice = input("Select: ")
+
+            if diff_choice == "1":
+                difficulty = "easy"
+            elif diff_choice == "2":
+                difficulty = "medium"
+            else:
+                difficulty = "hard"
+
             self.player1 = Player(name, "X")
-            self.player2 = AIPlayer("Computer", "O")
+            self.player2 = AIPlayer("Computer", "O", difficulty)
 
         else:
             print("Invalid choice, defaulting to Player vs Player")
