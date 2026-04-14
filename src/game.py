@@ -5,7 +5,6 @@ from src.player import Player, AIPlayer
 class Game:
     def __init__(self, mode, difficulty="easy", name1="Player 1", name2="Player 2"):
         self.board = Board()
-
         self.mode = mode
 
         if mode == "pvp":

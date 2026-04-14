@@ -7,17 +7,8 @@ class Player:
         self.symbol = symbol
 
     def get_move(self, board):
-        while True:
-            try:
-                position = int(input(f"{self.name} ({self.symbol}), choose position (0-8): "))
-
-                if 0 <= position <= 8:
-                    return position
-                else:
-                    print("Invalid position. Try again.")
-
-            except ValueError:
-                print("Please enter a number.")
+        # não usado na GUI (apenas estrutura)
+        pass
 
 
 class AIPlayer(Player):
@@ -26,28 +17,20 @@ class AIPlayer(Player):
         self.difficulty = difficulty
 
     def get_move(self, board):
-        print(f"{self.name} ({self.difficulty}) is thinking... 🤖")
-
         if self.difficulty == "easy":
             return self.random_move(board)
 
-        elif self.difficulty == "medium":
-            if random.random() < 0.5:
-                return self.random_move(board)
-            else:
-                return self.smart_move(board)
+        if self.difficulty == "medium":
+            return self.random_move(board) if random.random() < 0.5 else self.smart_move(board)
 
-        elif self.difficulty == "hard":
-            return self.smart_move(board)
+        return self.smart_move(board)
 
-    # 👇 EASY
     def random_move(self, board):
         available = [i for i, v in enumerate(board.grid) if v == " "]
         return random.choice(available)
 
-    # 👇 MÉDIO/DIFÍCIL
     def smart_move(self, board):
-        # tentar ganhar
+        # tenta ganhar
         for i in range(9):
             if board.grid[i] == " ":
                 board.grid[i] = self.symbol
@@ -56,8 +39,9 @@ class AIPlayer(Player):
                     return i
                 board.grid[i] = " "
 
-        # bloquear jogador
+        # bloqueia inimigo
         opponent = "X" if self.symbol == "O" else "O"
+
         for i in range(9):
             if board.grid[i] == " ":
                 board.grid[i] = opponent

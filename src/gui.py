@@ -22,62 +22,52 @@ class TicTacToeGUI:
 
     # ---------------- MENU ----------------
     def show_menu(self):
-        self.menu_frame = tk.Frame(self.window, bg="#1e1e1e")
-        self.menu_frame.pack(pady=40)
+        self.menu = tk.Frame(self.window, bg="#1e1e1e")
+        self.menu.pack(pady=30)
 
-        title = tk.Label(
-            self.menu_frame,
-            text="🎮 Tic-Tac-Toe",
-            font=("Arial", 20, "bold"),
-            fg="white",
-            bg="#1e1e1e"
-        )
-        title.pack(pady=10)
+        tk.Label(self.menu, text="🎮 Tic-Tac-Toe", fg="white", bg="#1e1e1e",
+                 font=("Arial", 20, "bold")).pack(pady=10)
 
-        tk.Label(self.menu_frame, text="Player 1 name:", fg="white", bg="#1e1e1e").pack()
-        self.p1_entry = tk.Entry(self.menu_frame)
-        self.p1_entry.pack()
+        tk.Label(self.menu, text="Player 1 name:", fg="white", bg="#1e1e1e").pack()
+        self.p1 = tk.Entry(self.menu)
+        self.p1.pack()
 
-        tk.Label(self.menu_frame, text="Player 2 name:", fg="white", bg="#1e1e1e").pack()
-        self.p2_entry = tk.Entry(self.menu_frame)
-        self.p2_entry.pack()
+        tk.Label(self.menu, text="Player 2 name:", fg="white", bg="#1e1e1e").pack()
+        self.p2 = tk.Entry(self.menu)
+        self.p2.pack()
 
-        # modo
-        tk.Label(self.menu_frame, text="Mode:", fg="white", bg="#1e1e1e").pack()
+        tk.Label(self.menu, text="Mode:", fg="white", bg="#1e1e1e").pack()
 
-        self.mode_var = tk.StringVar(value="pvp")
+        self.mode = tk.StringVar(value="pvp")
 
-        tk.Radiobutton(self.menu_frame, text="PvP", variable=self.mode_var, value="pvp", bg="#1e1e1e", fg="white").pack()
-        tk.Radiobutton(self.menu_frame, text="PvC", variable=self.mode_var, value="pvc", bg="#1e1e1e", fg="white").pack()
+        tk.Radiobutton(self.menu, text="PvP", variable=self.mode, value="pvp",
+                       bg="#1e1e1e", fg="white").pack()
 
-        # dificuldade
-        tk.Label(self.menu_frame, text="Difficulty (PvC):", fg="white", bg="#1e1e1e").pack()
+        tk.Radiobutton(self.menu, text="PvC", variable=self.mode, value="pvc",
+                       bg="#1e1e1e", fg="white").pack()
 
-        self.diff_var = tk.StringVar(value="easy")
+        tk.Label(self.menu, text="Difficulty:", fg="white", bg="#1e1e1e").pack()
 
-        tk.OptionMenu(self.menu_frame, self.diff_var, "easy", "medium", "hard").pack()
+        self.diff = tk.StringVar(value="easy")
 
-        tk.Button(
-            self.menu_frame,
-            text="Start Game",
-            command=self.start_game,
-            bg="#4da6ff",
-            fg="white"
-        ).pack(pady=10)
+        tk.OptionMenu(self.menu, self.diff, "easy", "medium", "hard").pack()
 
-    # ---------------- START GAME ----------------
+        tk.Button(self.menu, text="Start", bg="#4da6ff", fg="white",
+                  command=self.start_game).pack(pady=10)
+
+    # ---------------- START ----------------
     def start_game(self):
-        name1 = self.p1_entry.get() or "Player 1"
-        name2 = self.p2_entry.get() or "Computer"
+        name1 = self.p1.get() or "Player 1"
+        name2 = self.p2.get() or "Computer"
 
-        mode = self.mode_var.get()
-        difficulty = self.diff_var.get()
+        mode = self.mode.get()
+        diff = self.diff.get()
 
-        self.menu_frame.destroy()
+        self.menu.destroy()
 
         self.game = Game(
             mode=mode,
-            difficulty=difficulty,
+            difficulty=diff,
             name1=name1,
             name2=name2
         )
@@ -103,7 +93,7 @@ class TicTacToeGUI:
             btn.grid(row=i//3, column=i%3, padx=5, pady=5)
             self.buttons.append(btn)
 
-    # ---------------- GAMEPLAY ----------------
+    # ---------------- MOVE ----------------
     def make_move(self, pos):
         if not self.game.play_move(pos):
             return
@@ -118,26 +108,48 @@ class TicTacToeGUI:
         elif "wins" in status:
             self.end_game(self.game.winner.name)
 
+        # ⭐ FIX PvC: IA joga automaticamente
+        self.window.after(200, self.handle_ai)
+
+    # ---------------- IA TURN ----------------
+    def handle_ai(self):
+        if self.game.mode != "pvc":
+            return
+
+        if self.game.current_player.name != "Computer":
+            return
+
+        pos = self.game.current_player.get_move(self.game.board)
+        self.game.play_move(pos)
+
+        self.update_board()
+
+        status = self.game.get_status()
+
+        if status == "draw":
+            self.end_game("draw")
+
+        elif "wins" in status:
+            self.end_game(self.game.winner.name)
+
+    # ---------------- UPDATE ----------------
     def update_board(self):
         for i in range(9):
-            value = self.game.board.grid[i]
-            self.buttons[i]["text"] = value
+            v = self.game.board.grid[i]
+            self.buttons[i]["text"] = v
 
-            if value == "X":
+            if v == "X":
                 self.buttons[i]["fg"] = "#ff4d4d"
-            elif value == "O":
+            elif v == "O":
                 self.buttons[i]["fg"] = "#4da6ff"
 
-    # ---------------- END GAME ----------------
+    # ---------------- END ----------------
     def end_game(self, result):
         if result == "draw":
-            msg = "🤝 Deu velha!\n\nJogar novamente?"
-            title = "Empate"
+            messagebox.showinfo("Empate", "🤝 Deu velha!")
         else:
-            msg = f"🏆 {result} venceu!\n\nParabéns!"
-            title = "Vitória"
+            messagebox.showinfo("Vitória", f"🏆 {result} venceu!")
 
-        messagebox.showinfo(title, msg)
         self.reset()
 
     def reset(self):
