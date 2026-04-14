@@ -3,19 +3,24 @@ from src.player import Player, AIPlayer
 
 
 class Game:
-    def __init__(self, mode, difficulty="easy", name1="Player 1", name2="AI"):
+    def __init__(self, mode, difficulty=1, name1="Player 1", name2="AI"):
         self.mode = mode
         self.difficulty = difficulty
 
         self.board = Board()
 
         self.player1 = Player(name1, "X")
-        self.player2 = AIPlayer("AI", "O")
+
+        if mode == "pvp":
+            self.player2 = Player(name2, "O")
+        else:
+            self.player2 = AIPlayer("AI", "O")
 
         self.current_player = self.player1
 
         self.winner = None
         self.finished = False
+        self.win_combo = None
 
     def play_move(self, position):
         if self.finished:
@@ -52,5 +57,8 @@ class Game:
 
         for c in combos:
             if b[c[0]] == b[c[1]] == b[c[2]] != " ":
+                self.win_combo = c
                 return True
+
+        self.win_combo = None
         return False

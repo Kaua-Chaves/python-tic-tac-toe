@@ -19,7 +19,7 @@ class AIPlayer(Player):
             return self.random_move(board)
 
         if level == 2:
-            return self.random_move(board) if random.random() < 0.6 else self.smart_move(board)
+            return self.random_move(board) if random.random() < 0.5 else self.smart_move(board)
 
         return self.smart_move(board)
 
@@ -48,7 +48,6 @@ class AIPlayer(Player):
 
         return self.random_move(board)
 
-    # 🧠 MINIMAX (DESAFIO)
     def minimax_move(self, board):
         best_score = -999
         best_move = None
@@ -66,14 +65,12 @@ class AIPlayer(Player):
         return best_move
 
     def minimax(self, board, is_maximizing):
-        if self.check_win(board, self.symbol):
-            return 1
-
         opponent = "X" if self.symbol == "O" else "O"
 
+        if self.check_win(board, self.symbol):
+            return 1
         if self.check_win(board, opponent):
             return -1
-
         if " " not in board.grid:
             return 0
 
@@ -82,31 +79,22 @@ class AIPlayer(Player):
             for i in range(9):
                 if board.grid[i] == " ":
                     board.grid[i] = self.symbol
-                    score = self.minimax(board, False)
+                    best = max(best, self.minimax(board, False))
                     board.grid[i] = " "
-                    best = max(best, score)
             return best
         else:
             best = 999
             for i in range(9):
                 if board.grid[i] == " ":
                     board.grid[i] = opponent
-                    score = self.minimax(board, True)
+                    best = min(best, self.minimax(board, True))
                     board.grid[i] = " "
-                    best = min(best, score)
             return best
 
     def check_win(self, board, symbol):
-        b = board.grid
-
         combos = [
             [0,1,2],[3,4,5],[6,7,8],
             [0,3,6],[1,4,7],[2,5,8],
             [0,4,8],[2,4,6]
         ]
-
-        for c in combos:
-            if b[c[0]] == b[c[1]] == b[c[2]] == symbol:
-                return True
-
-        return False
+        return any(all(board.grid[i] == symbol for i in c) for c in combos)

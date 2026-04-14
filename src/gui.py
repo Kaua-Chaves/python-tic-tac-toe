@@ -6,233 +6,204 @@ from src.game import Game
 class TicTacToeGUI:
     def __init__(self):
         self.window = tk.Tk()
-        self.window.title("Tic-Tac-Toe")
-
-        self.window.geometry("450x600")
+        self.window.title("Tic Tac Toe")
+        self.window.geometry("400x550")
         self.window.configure(bg="#121212")
-        self.window.resizable(False, False)
-        self.window.eval('tk::PlaceWindow . center')
-
-        self.game = None
-        self.buttons = []
 
         self.show_menu()
         self.window.mainloop()
 
-    # ---------------- MENU MODERNO ----------------
+    # ---------- MENU ----------
     def show_menu(self):
         self.clear()
 
-        self.menu = tk.Frame(self.window, bg="#121212")
-        self.menu.pack(expand=True)
+        frame = tk.Frame(self.window, bg="#121212")
+        frame.pack(expand=True)
 
-        title = tk.Label(
-            self.menu,
-            text="TIC TAC TOE",
-            font=("Helvetica", 28, "bold"),
-            fg="#00ffd5",
-            bg="#121212"
-        )
-        title.pack(pady=30)
-
-        subtitle = tk.Label(
-            self.menu,
-            text="Choose your mode",
-            font=("Helvetica", 12),
-            fg="#aaaaaa",
-            bg="#121212"
-        )
-        subtitle.pack(pady=5)
+        tk.Label(frame, text="TIC TAC TOE",
+                 font=("Helvetica", 28, "bold"),
+                 fg="#00ffd5", bg="#121212").pack(pady=40)
 
         self.mode = tk.StringVar(value="pvp")
 
-        self.create_radio("PvP", "pvp")
-        self.create_radio("PvC (AI)", "pvc")
-        self.create_radio("🔥 Challenge (Impossible AI)", "challenge")
+        options = [
+            ("Player vs Player", "pvp"),
+            ("Player vs AI", "pvc"),
+            ("🔥 Challenge", "challenge")
+        ]
 
-        start_btn = tk.Button(
-            self.menu,
-            text="START GAME",
-            font=("Helvetica", 14, "bold"),
-            bg="#00ffd5",
-            fg="#000",
-            activebackground="#00c2a8",
-            padx=20,
-            pady=8,
-            bd=0,
-            command=self.next
-        )
-        start_btn.pack(pady=25)
+        for text, val in options:
+            tk.Radiobutton(frame, text=text, value=val,
+                           variable=self.mode,
+                           fg="white", bg="#121212",
+                           selectcolor="#1e1e1e").pack(pady=5)
 
-    def create_radio(self, text, value):
-        tk.Radiobutton(
-            self.menu,
-            text=text,
-            variable=self.mode,
-            value=value,
-            font=("Helvetica", 12),
-            fg="white",
-            bg="#121212",
-            selectcolor="#1e1e1e",
-            activebackground="#121212"
-        ).pack(anchor="w", padx=60, pady=5)
+        tk.Button(frame, text="NEXT",
+                  bg="#00ffd5", fg="black",
+                  command=self.config_screen).pack(pady=30)
 
-    # ---------------- NEXT SCREEN ----------------
-    def next(self):
+    # ---------- CONFIG ----------
+    def config_screen(self):
+        self.clear()
         mode = self.mode.get()
-        self.menu.destroy()
 
-        self.config = tk.Frame(self.window, bg="#121212")
-        self.config.pack(expand=True)
+        frame = tk.Frame(self.window, bg="#121212")
+        frame.pack(expand=True)
 
-        tk.Label(
-            self.config,
-            text="Enter your name",
-            fg="white",
-            bg="#121212",
-            font=("Helvetica", 14)
-        ).pack(pady=10)
+        tk.Label(frame, text="Configuration",
+                 fg="white", bg="#121212",
+                 font=("Helvetica", 18)).pack(pady=20)
 
-        self.p1 = tk.Entry(
-            self.config,
-            font=("Helvetica", 14),
-            justify="center"
-        )
-        self.p1.pack(pady=10)
+        tk.Label(frame, text="Player Name", fg="white", bg="#121212").pack()
+        self.name1 = tk.Entry(frame)
+        self.name1.pack(pady=10)
 
-        tk.Button(
-            self.config,
-            text="START",
-            font=("Helvetica", 12, "bold"),
-            bg="#00ffd5",
-            fg="black",
-            bd=0,
-            padx=15,
-            pady=5,
-            command=lambda: self.start(mode)
-        ).pack(pady=20)
+        if mode == "pvp":
+            tk.Label(frame, text="Player 2 Name", fg="white", bg="#121212").pack()
+            self.name2 = tk.Entry(frame)
+            self.name2.pack(pady=10)
 
-    # ---------------- START GAME ----------------
-    def start(self, mode):
-        name1 = self.p1.get() or "Player"
+        if mode == "pvc":
+            tk.Label(frame, text="Difficulty", fg="white", bg="#121212").pack()
+            self.difficulty = tk.StringVar(value="2")
 
-        self.config.destroy()
+            tk.Radiobutton(frame, text="Easy", value="1", variable=self.difficulty,
+                           fg="white", bg="#121212", selectcolor="#1e1e1e").pack()
+            tk.Radiobutton(frame, text="Medium", value="2", variable=self.difficulty,
+                           fg="white", bg="#121212", selectcolor="#1e1e1e").pack()
+            tk.Radiobutton(frame, text="Hard", value="3", variable=self.difficulty,
+                           fg="white", bg="#121212", selectcolor="#1e1e1e").pack()
 
-        self.game = Game(mode, "easy", name1, "AI")
+        tk.Button(frame, text="START",
+                  bg="#00ffd5",
+                  command=self.start_game).pack(pady=20)
+
+    # ---------- START ----------
+    def start_game(self):
+        mode = self.mode.get()
+
+        name1 = self.name1.get() or "Player 1"
+        name2 = getattr(self, "name2", None)
+        name2 = name2.get() if name2 else "AI"
+
+        difficulty = 1
+
+        if mode == "pvc":
+            difficulty = int(self.difficulty.get())
+
+        if mode == "challenge":
+            difficulty = 99
+
+        self.game = Game(mode, difficulty, name1, name2)
 
         self.create_board()
 
-    # ---------------- BOARD MODERNO ----------------
+    # ---------- BOARD ----------
     def create_board(self):
-        self.frame = tk.Frame(self.window, bg="#121212")
-        self.frame.pack(expand=True)
+        self.clear()
 
-        self.buttons = []
+        self.canvas = tk.Canvas(self.window, width=300, height=300,
+                                bg="#121212", highlightthickness=0)
+        self.canvas.pack(pady=20)
 
-        self.status_label = tk.Label(
-            self.window,
-            text="Your turn",
-            font=("Helvetica", 12),
-            fg="#aaaaaa",
-            bg="#121212"
-        )
-        self.status_label.pack(pady=10)
+        self.draw_grid()
+        self.canvas.bind("<Button-1>", self.click)
 
-        for i in range(9):
-            btn = tk.Button(
-                self.frame,
-                text="",
-                font=("Helvetica", 26, "bold"),
-                width=4,
-                height=2,
-                bg="#1f1f1f",
-                fg="white",
-                activebackground="#2a2a2a",
-                relief="flat",
-                bd=0,
-                command=lambda i=i: self.move(i)
-            )
+        self.status = tk.Label(self.window, text="",
+                               fg="white", bg="#121212")
+        self.status.pack()
 
-            btn.grid(row=i // 3, column=i % 3, padx=6, pady=6)
+        self.update_status()
 
-            # 🎯 hover effect
-            btn.bind("<Enter>", lambda e, b=btn: b.config(bg="#2a2a2a"))
-            btn.bind("<Leave>", lambda e, b=btn: b.config(bg="#1f1f1f"))
+    def draw_grid(self):
+        for i in range(1, 3):
+            self.canvas.create_line(0, i*100, 300, i*100, fill="#2a2a2a", width=4)
+            self.canvas.create_line(i*100, 0, i*100, 300, fill="#2a2a2a", width=4)
 
-            self.buttons.append(btn)
+    def click(self, event):
+        col = event.x // 100
+        row = event.y // 100
+        pos = row * 3 + col
+        self.move(pos)
 
-    # ---------------- MOVE ----------------
     def move(self, pos):
         if not self.game.play_move(pos):
             return
 
-        self.animate_button(pos)
         self.update()
 
         if self.game.finished:
-            self.end(self.game.winner.name if self.game.winner else "draw")
+            if self.game.winner:
+                self.draw_win_line(self.game.win_combo)
+            self.end()
             return
 
-        self.status_label.config(text="AI thinking...")
-        self.window.after(200, self.ai)
+        if self.game.mode != "pvp" and self.game.current_player.name == "AI":
+            self.window.after(300, self.ai)
+        else:
+            self.update_status()
 
-    # ---------------- AI ----------------
     def ai(self):
-        if self.game.current_player.name != "AI":
-            return
-
-        level = 99 if self.game.mode == "challenge" else 2
-
-        pos = self.game.current_player.get_move(self.game.board, level)
+        pos = self.game.current_player.get_move(
+            self.game.board,
+            self.game.difficulty
+        )
 
         self.game.play_move(pos)
-
-        self.animate_button(pos)
         self.update()
 
-        self.status_label.config(text="Your turn")
-
         if self.game.finished:
-            self.end(self.game.winner.name if self.game.winner else "draw")
-
-    # ---------------- ANIMATION ----------------
-    def animate_button(self, pos):
-        btn = self.buttons[pos]
-        btn.config(bg="#00ffd5", fg="black")
-        self.window.after(150, lambda: btn.config(bg="#1f1f1f"))
-
-    # ---------------- UPDATE ----------------
-    def update(self):
-        for i in range(9):
-            self.buttons[i]["text"] = self.game.board.grid[i]
-
-    # ---------------- END ----------------
-    def end(self, result):
-
-        if self.game.mode == "challenge":
-            if result == "draw":
-                msg = "🤝 Draw vs Impossible AI"
-            elif result == "AI":
-                msg = "🤖 AI defeated you!"
-            else:
-                msg = "🎉 You defeated Impossible AI!"
-
-            messagebox.showinfo("Challenge Mode", msg)
-            self.reset()
+            if self.game.winner:
+                self.draw_win_line(self.game.win_combo)
+            self.end()
             return
 
-        messagebox.showinfo("Game Over", f"{result} wins!")
-        self.reset()
+        self.update_status()
 
-    # ---------------- RESET ----------------
-    def reset(self):
-        self.game = None
-        self.buttons = []
-        self.frame.destroy()
-        self.status_label.destroy()
+    def update(self):
+        self.canvas.delete("symbol")
+
+        for i in range(9):
+            x = (i % 3) * 100 + 50
+            y = (i // 3) * 100 + 50
+            s = self.game.board.grid[i]
+
+            if s == "X":
+                self.canvas.create_text(x, y, text="X",
+                                        fill="red",
+                                        font=("Helvetica", 40, "bold"),
+                                        tags="symbol")
+            elif s == "O":
+                self.canvas.create_text(x, y, text="O",
+                                        fill="blue",
+                                        font=("Helvetica", 40, "bold"),
+                                        tags="symbol")
+
+    def draw_win_line(self, combo):
+        coords = {
+            0:(50,50),1:(150,50),2:(250,50),
+            3:(50,150),4:(150,150),5:(250,150),
+            6:(50,250),7:(150,250),8:(250,250)
+        }
+
+        s = coords[combo[0]]
+        e = coords[combo[2]]
+
+        self.canvas.create_line(s[0], s[1], e[0], e[1],
+                                fill="white", width=6)
+
+    def update_status(self):
+        p = self.game.current_player
+        self.status.config(text=f"{p.name} turn ({p.symbol})")
+
+    def end(self):
+        if self.game.winner:
+            messagebox.showinfo("Game Over", f"{self.game.winner.name} wins!")
+        else:
+            messagebox.showinfo("Game Over", "Draw!")
+
         self.show_menu()
 
-    # ---------------- CLEAR ----------------
     def clear(self):
         for w in self.window.winfo_children():
             w.destroy()
