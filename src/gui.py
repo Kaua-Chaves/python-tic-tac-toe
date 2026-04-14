@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from src.board import Board
+from src.game import Game
 
 
 class TicTacToeGUI:
@@ -8,36 +8,89 @@ class TicTacToeGUI:
         self.window = tk.Tk()
         self.window.title("Tic-Tac-Toe")
 
-        self.window.geometry("420x500")
+        self.window.geometry("420x520")
         self.window.configure(bg="#1e1e1e")
         self.window.resizable(False, False)
         self.window.eval('tk::PlaceWindow . center')
 
-        self.board = Board()
-        self.current_player = "X"
-        self.game_over = False
-
+        self.game = None
         self.buttons = []
 
-        self.title = tk.Label(
-            self.window,
-            text="Tic-Tac-Toe",
-            font=("Arial", 18, "bold"),
-            fg="white",
-            bg="#1e1e1e"
-        )
-        self.title.pack(pady=10)
-
-        self.frame = tk.Frame(self.window, bg="#1e1e1e")
-        self.frame.pack()
-
-        self.create_grid()
+        self.show_menu()
 
         self.window.mainloop()
 
-    def create_grid(self):
+    # ---------------- MENU ----------------
+    def show_menu(self):
+        self.menu_frame = tk.Frame(self.window, bg="#1e1e1e")
+        self.menu_frame.pack(pady=40)
+
+        title = tk.Label(
+            self.menu_frame,
+            text="🎮 Tic-Tac-Toe",
+            font=("Arial", 20, "bold"),
+            fg="white",
+            bg="#1e1e1e"
+        )
+        title.pack(pady=10)
+
+        tk.Label(self.menu_frame, text="Player 1 name:", fg="white", bg="#1e1e1e").pack()
+        self.p1_entry = tk.Entry(self.menu_frame)
+        self.p1_entry.pack()
+
+        tk.Label(self.menu_frame, text="Player 2 name:", fg="white", bg="#1e1e1e").pack()
+        self.p2_entry = tk.Entry(self.menu_frame)
+        self.p2_entry.pack()
+
+        # modo
+        tk.Label(self.menu_frame, text="Mode:", fg="white", bg="#1e1e1e").pack()
+
+        self.mode_var = tk.StringVar(value="pvp")
+
+        tk.Radiobutton(self.menu_frame, text="PvP", variable=self.mode_var, value="pvp", bg="#1e1e1e", fg="white").pack()
+        tk.Radiobutton(self.menu_frame, text="PvC", variable=self.mode_var, value="pvc", bg="#1e1e1e", fg="white").pack()
+
+        # dificuldade
+        tk.Label(self.menu_frame, text="Difficulty (PvC):", fg="white", bg="#1e1e1e").pack()
+
+        self.diff_var = tk.StringVar(value="easy")
+
+        tk.OptionMenu(self.menu_frame, self.diff_var, "easy", "medium", "hard").pack()
+
+        tk.Button(
+            self.menu_frame,
+            text="Start Game",
+            command=self.start_game,
+            bg="#4da6ff",
+            fg="white"
+        ).pack(pady=10)
+
+    # ---------------- START GAME ----------------
+    def start_game(self):
+        name1 = self.p1_entry.get() or "Player 1"
+        name2 = self.p2_entry.get() or "Computer"
+
+        mode = self.mode_var.get()
+        difficulty = self.diff_var.get()
+
+        self.menu_frame.destroy()
+
+        self.game = Game(
+            mode=mode,
+            difficulty=difficulty,
+            name1=name1,
+            name2=name2
+        )
+
+        self.create_board()
+
+    # ---------------- BOARD ----------------
+    def create_board(self):
+        self.frame = tk.Frame(self.window, bg="#1e1e1e")
+        self.frame.pack()
+
         for i in range(9):
-            button = tk.Button(
+            btn = tk.Button(
                 self.frame,
                 text="",
                 font=("Arial", 28, "bold"),
@@ -45,80 +98,51 @@ class TicTacToeGUI:
                 height=2,
                 bg="#2b2b2b",
                 fg="white",
-                activebackground="#3a3a3a",
-                relief="flat",
                 command=lambda i=i: self.make_move(i)
             )
+            btn.grid(row=i//3, column=i%3, padx=5, pady=5)
+            self.buttons.append(btn)
 
-            button.grid(row=i // 3, column=i % 3, padx=5, pady=5)
-
-            button.bind("<Enter>", lambda e, b=button: b.config(bg="#3a3a3a"))
-            button.bind("<Leave>", lambda e, b=button: b.config(bg="#2b2b2b"))
-
-            self.buttons.append(button)
-
-    def make_move(self, position):
-        if self.game_over:
+    # ---------------- GAMEPLAY ----------------
+    def make_move(self, pos):
+        if not self.game.play_move(pos):
             return
 
-        if self.board.grid[position] != " ":
-            return
+        self.update_board()
 
-        self.board.grid[position] = self.current_player
-        self.buttons[position]["text"] = self.current_player
+        status = self.game.get_status()
 
-        self.buttons[position]["fg"] = "#ff4d4d" if self.current_player == "X" else "#4da6ff"
+        if status == "draw":
+            self.end_game("draw")
 
-        if self.check_winner():
-            self.show_game_over(self.current_player)
-            return
+        elif "wins" in status:
+            self.end_game(self.game.winner.name)
 
-        if self.board.is_full():
-            self.show_game_over("draw")
-            return
+    def update_board(self):
+        for i in range(9):
+            value = self.game.board.grid[i]
+            self.buttons[i]["text"] = value
 
-        self.switch_player()
+            if value == "X":
+                self.buttons[i]["fg"] = "#ff4d4d"
+            elif value == "O":
+                self.buttons[i]["fg"] = "#4da6ff"
 
-    def switch_player(self):
-        self.current_player = "O" if self.current_player == "X" else "X"
-
-    def check_winner(self):
-        b = self.board.grid
-
-        combos = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6]
-        ]
-
-        for c in combos:
-            if b[c[0]] == b[c[1]] == b[c[2]] != " ":
-                return True
-        return False
-
-    # ⭐ MELHORIA PRINCIPAL
-    def show_game_over(self, result):
-        self.game_over = True
-
+    # ---------------- END GAME ----------------
+    def end_game(self, result):
         if result == "draw":
-            title = "🤝 Empate!"
-            msg = "Deu velha!\n\nQuer jogar novamente?"
+            msg = "🤝 Deu velha!\n\nJogar novamente?"
+            title = "Empate"
         else:
-            title = "🏆 Vitória!"
-            msg = f"🎉 Jogador {result} venceu!\n\nParabéns!"
+            msg = f"🏆 {result} venceu!\n\nParabéns!"
+            title = "Vitória"
 
         messagebox.showinfo(title, msg)
-        self.reset_game()
+        self.reset()
 
-    def reset_game(self):
-        self.board = Board()
-        self.current_player = "X"
-        self.game_over = False
+    def reset(self):
+        self.game = None
+        self.buttons = []
 
-        for button in self.buttons:
-            button.config(text="", fg="white")
+        self.frame.destroy()
+        self.show_menu()
